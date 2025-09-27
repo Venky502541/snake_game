@@ -16,6 +16,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      flex-direction: column;
       height: 100vh;
       background: #212837;
       color: #b8c6dc;
@@ -31,6 +32,7 @@
       width: 600px;
       height: 650px;
       padding: 10px;
+      position: relative;
     }
     .scoreboard {
       width: 100%;
@@ -50,6 +52,7 @@
       grid-template-rows: repeat(30, 1fr);
       border-radius: 5px;
       overflow: hidden;
+      touch-action: none;
     }
     .snake {
       background: #60cbff;
@@ -77,18 +80,57 @@
       display: none;
       z-index: 10;
     }
-    button {
-      margin-top: 10px;
-      padding: 8px 20px;
-      background: #60cbff;
+    .control-buttons {
+      margin-top: 15px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      user-select: none;
+    }
+    .control-buttons button {
+      width: 60px;
+      height: 60px;
+      border-radius: 6px;
       border: none;
-      border-radius: 5px;
-      font-size: 1rem;
+      font-size: 1.5rem;
+      font-weight: bold;
+      background: #60cbff;
       color: #212837;
       cursor: pointer;
+      transition: background 0.3s ease;
+      touch-action: manipulation;
     }
-    button:hover {
+    .control-buttons button:active {
       background: #45aeee;
+    }
+    .vertical-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-left: 10px;
+    }
+    @media(max-width: 650px) {
+      .game-container {
+        width: 100vw;
+        height: 100vw;
+        max-width: 600px;
+        max-height: 650px;
+        padding: 5px;
+      }
+      .play-board {
+        width: 100vw;
+        height: 100vw;
+        max-width: 600px;
+        max-height: 600px;
+      }
+      .control-buttons {
+        flex-wrap: wrap;
+      }
+      .control-buttons button {
+        width: 48px;
+        height: 48px;
+        font-size: 1.2rem;
+      }
     }
   </style>
 </head>
@@ -103,6 +145,14 @@
       Game Over!<br />
       <button id="restartBtn">Restart</button>
     </div>
+    <div class="control-buttons" id="mobileControls" aria-label="Mobile direction controls">
+      <button id="upBtn" aria-label="Move Up">▲</button>
+      <div style="display:flex;">
+        <button id="leftBtn" aria-label="Move Left">◄</button>
+        <button id="downBtn" aria-label="Move Down">▼</button>
+        <button id="rightBtn" aria-label="Move Right">►</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -111,6 +161,11 @@
     const highScoreElem = document.getElementById("highScore");
     const gameOverMessage = document.getElementById("gameOverMessage");
     const restartBtn = document.getElementById("restartBtn");
+
+    const upBtn = document.getElementById("upBtn");
+    const downBtn = document.getElementById("downBtn");
+    const leftBtn = document.getElementById("leftBtn");
+    const rightBtn = document.getElementById("rightBtn");
 
     const gridSize = 30;
 
@@ -194,6 +249,7 @@
       gameOverMessage.style.display = "block";
     }
 
+    // Keyboard controls
     function changeDirection(e) {
       const key = e.key;
       if (!gameRunning) return;
@@ -206,6 +262,26 @@
         velocity = { x: -1, y: 0 };
       } else if (key === "ArrowRight" && velocity.x !== -1) {
         velocity = { x: 1, y: 0 };
+      }
+    }
+
+    // Mobile buttons control
+    function btnControl(direction) {
+      if (!gameRunning) return;
+
+      switch (direction) {
+        case 'up':
+          if (velocity.y !== 1) velocity = { x: 0, y: -1 };
+          break;
+        case 'down':
+          if (velocity.y !== -1) velocity = { x: 0, y: 1 };
+          break;
+        case 'left':
+          if (velocity.x !== 1) velocity = { x: -1, y: 0 };
+          break;
+        case 'right':
+          if (velocity.x !== -1) velocity = { x: 1, y: 0 };
+          break;
       }
     }
 
@@ -222,6 +298,11 @@
 
     window.addEventListener("keydown", changeDirection);
     restartBtn.addEventListener("click", restartGame);
+
+    upBtn.addEventListener("touchstart", () => btnControl('up'), { passive: true });
+    downBtn.addEventListener("touchstart", () => btnControl('down'), { passive: true });
+    leftBtn.addEventListener("touchstart", () => btnControl('left'), { passive: true });
+    rightBtn.addEventListener("touchstart", () => btnControl('right'), { passive: true });
 
     placeFood();
     draw();
